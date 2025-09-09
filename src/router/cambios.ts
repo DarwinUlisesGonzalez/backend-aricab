@@ -3,7 +3,7 @@ import CambiosController from '../controllers/cambios';
 
 const router = Router();
 
-router.get('/', (req, res) => {
+router.get('/fecha/:fecha', (req, res) => {
   void CambiosController.obtenerCambios(req, res);
 });
 

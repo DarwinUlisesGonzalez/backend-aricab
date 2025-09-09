@@ -4,7 +4,10 @@ import CambiosModels from '../models/cambios';
 class CambiosController {
   async obtenerCambios(req: Request, res: Response) {
     try {
-      const cambios = await CambiosModels.obtenerCambios();
+      const { fecha } = req.params;
+
+      const cambios = await CambiosModels.obtenerCambios(fecha);
+      
       res.status(200).json(cambios);
     } catch {
       res.status(500).json({ message: 'Error al obtener cambios' });

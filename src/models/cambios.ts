@@ -6,9 +6,22 @@ import { RegistroSchemas } from '@/schemas/registro';
 import { RegistroType } from '@/types/registro';
 
 class CambiosModels {
-  async obtenerCambios() {
+  async obtenerCambios(fecha: string) {
     try {
-      const cambios: CambiosType[] = await CambiosSchemas.find();
+      const localDate = new Date(fecha);
+      
+      const inicioDelDia = new Date(localDate);
+      inicioDelDia.setUTCHours(6, 0, 0, 0);
+      
+      const finDelDia = new Date(localDate);  
+      finDelDia.setUTCHours(29, 59, 59, 999);
+
+      const cambios: CambiosType[] = await CambiosSchemas.find({
+        fecha: {
+          $gte: inicioDelDia,
+          $lte: finDelDia,
+        },
+      });
       return cambios;
     } catch {
       return [];
