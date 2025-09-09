@@ -3,7 +3,7 @@ import DevolucionesController from '../controllers/devoluciones';
 
 const router = Router();
 
-router.get('/', (req, res) => {
+router.get('/fecha/:fecha', (req, res) => {
   void DevolucionesController.obtenerDevoluciones(req, res);
 });
 

@@ -4,7 +4,9 @@ import DevolucionesModels from '../models/devoluciones';
 class DevolucionesController {
   async obtenerDevoluciones(req: Request, res: Response) {
     try {
-      const devoluciones = await DevolucionesModels.obtenerDevoluciones();
+      const { fecha } = req.params;
+
+      const devoluciones = await DevolucionesModels.obtenerDevoluciones(fecha);
 
       if (devoluciones.length === 0) {
         return res.status(404).json({ message: 'No hay devoluciones' });

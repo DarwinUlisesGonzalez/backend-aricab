@@ -3,9 +3,23 @@ import { DevolucionesSchemas } from '@/schemas/devoluciones';
 import { DevolucionesType, ProductosDevolucion } from '@/types/devoluciones';
 
 class DevolucionesModels {
-  async obtenerDevoluciones() {
+  async obtenerDevoluciones(fecha: string) {
     try {
-      const devoluciones = await DevolucionesSchemas.find();
+      const localDate = new Date(fecha);
+
+      const inicioDelDia = new Date(localDate);
+      inicioDelDia.setUTCHours(6, 0, 0, 0);
+
+      const finDelDia = new Date(localDate);
+      finDelDia.setUTCHours(29, 59, 59, 999);
+
+      const devoluciones = await DevolucionesSchemas.find({
+        fecha: {
+          $gte: inicioDelDia,
+          $lte: finDelDia,
+        },
+      });
+
       return devoluciones;
     } catch {
       return [];
