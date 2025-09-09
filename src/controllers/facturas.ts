@@ -68,6 +68,7 @@ class FacturasControllers {
         total: 0,
         'id-facturador': facturador,
         pagado,
+        descuento: 0,
       });
 
       if (response === 'Error al crear la factura') {
@@ -356,6 +357,141 @@ class FacturasControllers {
       return res.status(200).json(response);
     } catch {
       res.status(500).json({ message: 'Error al obtener factura' });
+    }
+  }
+  async crearFacturaAdministrador(req: Request, res: Response) {
+    try {
+      const {
+        id,
+        cliente,
+        fecha,
+        productos,
+        tipo,
+        total,
+        pagado,
+        facturador,
+        descuento,
+      } = req.body as {
+        id: string;
+        cliente: string;
+        fecha: string;
+        productos: {
+          id: string;
+          nombre: string;
+          precio: number;
+          cantidad: number;
+        }[];
+        tipo: string;
+        total: number;
+        pagado: number;
+        facturador: string;
+        descuento: number;
+      };
+
+      if (
+        !id ||
+        !cliente ||
+        !fecha ||
+        !tipo ||
+        !total ||
+        !facturador ||
+        !Array.isArray(productos)
+      ) {
+        res.status(400).json({ message: 'Faltan datos obligatorios' });
+        return;
+      }
+
+      const response = await FacturasModels.crearFacturaAdministrador({
+        id,
+        nombre: cliente,
+        fecha: new Date(fecha),
+        productos,
+        tipo,
+        total,
+        pagado,
+        'id-facturador': facturador,
+        descuento,
+      });
+
+      if (response === 'Cantidad insuficiente en el stock') {
+        return res.status(400).json({ message: response });
+      }
+
+      if (response === 'Error al crear la factura') {
+        return res.status(500).json({ message: response });
+      }
+
+      res.status(200).json({ message: response });
+    } catch {
+      res.status(500).json({ message: 'Error al crear la factura' });
+    }
+  }
+  async actualizarFacturaAdministrador(req: Request, res: Response) {
+    try {
+      const { id } = req.params as { id: string };
+
+      const { productos, tipo, total, pagado, descuento } = req.body as {
+        id: string;
+        productos: {
+          id: string;
+          nombre: string;
+          precio: number;
+          cantidad: number;
+        }[];
+        tipo: string;
+        total: number;
+        pagado: number;
+        descuento: number;
+      };
+
+      if (!id || !tipo || !total || !Array.isArray(productos)) {
+        res.status(400).json({ message: 'Faltan datos obligatorios' });
+        return;
+      }
+
+      const response = await FacturasModels.actualizarFacturaAdministrador({
+        id,
+        productos,
+        tipo,
+        total,
+        pagado,
+        descuento,
+      });
+
+      if (response === 'No existe la factura') {
+        return res.status(404).json({ message: response });
+      }
+
+      if (response === 'Cantidad insuficiente en el stock') {
+        return res.status(400).json({ message: response });
+      }
+
+      if (response === 'Error al actualizar la factura') {
+        return res.status(500).json({ message: response });
+      }
+
+      res.status(200).json({ message: response });
+    } catch {
+      res.status(500).json({ message: 'Error al actualizar la factura' });
+    }
+  }
+  async eliminarFacturaAdministrador(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+
+      const response = await FacturasModels.eliminarFacturaAdministrador(id);
+
+      if (response === 'No existe la factura') {
+        return res.status(404).json({ message: response });
+      }
+
+      if (response === 'Error al eliminar la factura') {
+        return res.status(500).json({ message: response });
+      }
+
+      return res.status(200).json({ message: response });
+    } catch {
+      res.status(500).json({ message: 'Error al eliminar la factura' });
     }
   }
 }

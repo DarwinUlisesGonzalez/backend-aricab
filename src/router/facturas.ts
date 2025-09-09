@@ -71,4 +71,16 @@ router.get('/reportes/resumen/:fechaInicio/:fechaFin', (req, res) => {
   void FacturasControllers.obtenerReporteRangos(req, res);
 });
 
+router.post('/administrador/facturas', (req, res) => {
+  void FacturasControllers.crearFacturaAdministrador(req, res);
+});
+
+router.put('/administrador/facturas/:id', (req, res) => {
+  void FacturasControllers.actualizarFacturaAdministrador(req, res);
+});
+
+router.delete('/administrador/facturas/:id', (req, res) => {
+  void FacturasControllers.eliminarFacturaAdministrador(req, res);
+});
+
 export default router;

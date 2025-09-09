@@ -8,6 +8,8 @@ import { RegistroType } from '@/types/registro';
 import { RegistroSchemas } from '@/schemas/registro';
 import { RecuperacionSchemas } from '@/schemas/recuperacion';
 import { PipelineStage } from 'mongoose';
+import { ProductoType } from '@/types/productos';
+import { ProductosSchema } from '@/schemas/productos';
 
 class FacturasModels {
   async obtenerFacturas(fecha: string) {
@@ -427,7 +429,9 @@ class FacturasModels {
       const facturas: FacturaType[] = await FacturasSchemas.find({
         'id-facturador': facturador,
         nombre: cliente,
-      }).sort({ fecha: -1 }).limit(20);
+      })
+        .sort({ fecha: -1 })
+        .limit(20);
 
       return facturas;
     } catch {
@@ -576,6 +580,189 @@ class FacturasModels {
         montoMensual: [],
         montoAnual: [],
       };
+    }
+  }
+  async crearFacturaAdministrador(factura: FacturaType) {
+    try {
+      const productosStok: ProductoType[] = await ProductosSchema.find();
+
+      for (const producto of productosStok) {
+        const prod = factura.productos.find((p) => p.id === producto.id);
+        if (prod) {
+          if (prod.cantidad > producto.cantidad) {
+            return 'Cantidad insuficiente en el stock';
+          } else {
+            const newProducto = {
+              id: producto.id,
+              nombre: producto.nombre,
+              precioCompra: producto.precioCompra,
+              precioVenta: producto.precioVenta,
+              cantidad: producto.cantidad - prod.cantidad,
+            };
+
+            await ProductosSchema.updateOne({ id: producto.id }, newProducto);
+          }
+        }
+      }
+
+      await FacturasSchemas.create(factura);
+
+      io.emit('facturaAdd', {
+        id: factura.id,
+        nombre: factura.nombre,
+        fecha: factura.fecha,
+        productos: factura.productos,
+        tipo: factura.tipo,
+        total: factura.total,
+        pagado: factura.pagado,
+        'id-facturador': factura['id-facturador'],
+        descuento: factura.descuento,
+      });
+
+      io.emit('updateProd');
+
+      return 'Factura creada correctamente';
+    } catch {
+      return 'Error al crear la factura';
+    }
+  }
+  async actualizarFacturaAdministrador({
+    id,
+    productos,
+    tipo,
+    total,
+    pagado,
+    descuento,
+  }: {
+    id: string;
+    productos: ProductoFacturaType[];
+    tipo: string;
+    total: number;
+    pagado: number;
+    descuento: number;
+  }) {
+    try {
+      const factura = await FacturasSchemas.findOne({ id });
+
+      if (!factura) {
+        return 'No existe la factura';
+      }
+
+      const productosStok: ProductoType[] = await ProductosSchema.find();
+
+      for (const producto of productosStok) {
+        const prodOld = factura.productos.find((p) => p.id === producto.id);
+        const prodNew = productos.find((p) => p.id === producto.id);
+
+        if (prodOld && prodNew) {
+          let newCantidad = producto.cantidad;
+
+          if (prodNew.cantidad > prodOld.cantidad) {
+            newCantidad =
+              producto.cantidad - (prodNew.cantidad - prodOld.cantidad);
+          }
+
+          if (prodNew.cantidad < prodOld.cantidad) {
+            newCantidad =
+              producto.cantidad + (prodOld.cantidad - prodNew.cantidad);
+          }
+
+          if (newCantidad < 0) {
+            return 'Cantidad insuficiente en el stock';
+          }
+
+          const newProducto = {
+            id: producto.id,
+            nombre: producto.nombre,
+            precioCompra: producto.precioCompra,
+            precioVenta: producto.precioVenta,
+            cantidad: newCantidad,
+          };
+
+          await ProductosSchema.updateOne({ id: producto.id }, newProducto);
+        } else if (prodOld && !prodNew) {
+          const newProducto = {
+            id: producto.id,
+            nombre: producto.nombre,
+            precioCompra: producto.precioCompra,
+            precioVenta: producto.precioVenta,
+            cantidad: producto.cantidad + prodOld.cantidad,
+          };
+
+          await ProductosSchema.updateOne({ id: producto.id }, newProducto);
+        } else if (!prodOld && prodNew) {
+          const newProducto = {
+            id: producto.id,
+            nombre: producto.nombre,
+            precioCompra: producto.precioCompra,
+            precioVenta: producto.precioVenta,
+            cantidad: producto.cantidad - prodNew.cantidad,
+          };
+
+          await ProductosSchema.updateOne({ id: producto.id }, newProducto);
+        }
+      }
+
+      await FacturasSchemas.updateOne(
+        { id },
+        {
+          productos,
+          tipo,
+          total,
+          pagado,
+          descuento,
+        },
+      );
+
+      io.emit('facturaUpdate', {
+        id,
+        productos,
+        tipo,
+        total,
+        pagado,
+        descuento,
+      });
+
+      io.emit('updateProd');
+
+      return 'Factura actualizada correctamente';
+    } catch {
+      return 'Error al actualizar la factura';
+    }
+  }
+  async eliminarFacturaAdministrador(id: string) {
+    try {
+      const factura = await FacturasSchemas.findOne({ id });
+
+      if (!factura) {
+        return 'No existe la factura';
+      }
+
+      const productosStok: ProductoType[] = await ProductosSchema.find();
+
+      for (const producto of productosStok) {
+        const prod = factura.productos.find((p) => p.id === producto.id);
+        if (prod) {
+          const newProducto = {
+            id: producto.id,
+            nombre: producto.nombre,
+            precioCompra: producto.precioCompra,
+            precioVenta: producto.precioVenta,
+            cantidad: producto.cantidad + prod.cantidad,
+          };
+
+          await ProductosSchema.updateOne({ id: producto.id }, newProducto);
+        }
+      }
+
+      await FacturasSchemas.deleteOne({ id });
+
+      io.emit('facturaDelete', id);
+      io.emit('updateProd');
+
+      return 'Factura eliminada';
+    } catch {
+      return 'Error al eliminar la factura';
     }
   }
 }
