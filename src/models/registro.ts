@@ -153,7 +153,7 @@ class RegistroModel {
   }
   async actualizarNombreProducto(anterior: string, actual: string) {
     try {
-      const registros: RegistroType[] = await RegistroSchemas.find();
+      const registros = await RegistroSchemas.find().lean() as unknown as  RegistroType[];
 
       if (registros.length === 0) return;
 
@@ -176,7 +176,7 @@ class RegistroModel {
           productosNuevos[dia] = productosDias;
         }
 
-        for(const [nombre, cantidad] of Object.entries(reg.sobrantes)) {
+        for (const [nombre, cantidad] of Object.entries(reg.sobrantes)) {
           if (nombre === anterior) {
             sobrantesNuevos[actual] = cantidad;
           } else {
@@ -184,7 +184,7 @@ class RegistroModel {
           }
         }
 
-        for(const [nombre, cantidad] of Object.entries(reg.cambios)) {
+        for (const [nombre, cantidad] of Object.entries(reg.cambios)) {
           if (nombre === anterior) {
             cambiosNuevos[actual] = cantidad;
           } else {
@@ -192,7 +192,14 @@ class RegistroModel {
           }
         }
 
-        await RegistroSchemas.updateOne({ id: reg.id }, { productos: productosNuevos, sobrantes: sobrantesNuevos, cambios: cambiosNuevos });
+        await RegistroSchemas.updateOne(
+          { id: reg.id },
+          {
+            productos: productosNuevos,
+            sobrantes: sobrantesNuevos,
+            cambios: cambiosNuevos,
+          },
+        );
       }
     } catch {
       return 'Error al actualizar el nombre del producto';
