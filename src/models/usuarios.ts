@@ -466,8 +466,57 @@ class UsuariosModels {
       // Emitimos los eventos
       io.emit('updateProdRuta', updatedProducts);
       io.emit('updateProd');
-    } catch (error) {
-      console.error('Error', error);
+    } catch {
+      console.error('Error');
+    }
+  }
+  async actualizarCantidadCambioDelete(
+    facturador: string,
+    productos: ProductoCambio[],
+  ) {
+    try {
+      const ruta: RutasProductosType | null =
+        await RutasProductosSchemas.findOne({ ruta: facturador });
+
+      if (!ruta) return;
+
+      const newProd = new Map<string, Productos>(); // Usamos un mapa para evitar duplicados.
+
+      for (const prodRuta of ruta.productos) {
+        // Busca si el producto de la ruta está en la factura
+        const prodFac = productos.find((p) => p.nombre === prodRuta.nombre);
+
+        if (prodFac) {
+          // Si el producto está en la factura, actualiza la cantidad
+          const nuevaCantidad = prodRuta.cantidad + prodFac.cantidad;
+
+          newProd.set(prodRuta.id, {
+            id: prodRuta.id,
+            nombre: prodRuta.nombre,
+            precio: prodRuta.precio,
+            cantidad: nuevaCantidad,
+          });
+        } else {
+          // Si el producto no está en la factura, lo agregamos tal cual
+          newProd.set(prodRuta.id, {
+            id: prodRuta.id,
+            nombre: prodRuta.nombre,
+            precio: prodRuta.precio,
+            cantidad: prodRuta.cantidad,
+          });
+        }
+      }
+
+      await RutasProductosSchemas.updateOne(
+        { ruta: facturador },
+        { productos: Array.from(newProd.values()) },
+      );
+
+      // Emitimos los eventos
+      io.emit('updateProdRuta', Array.from(newProd.values()));
+      io.emit('updateProd');
+    } catch {
+      return 'Error al actualizar';
     }
   }
   async actualizarPrecioProducto(

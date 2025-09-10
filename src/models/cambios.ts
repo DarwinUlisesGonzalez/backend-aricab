@@ -104,6 +104,11 @@ class CambiosModels {
 
       await CambiosSchemas.deleteOne({ id });
 
+      await UsuarioModels.actualizarCantidadCambioDelete(
+        cambio.facturador,
+        cambio.productos,
+      );
+
       io.emit('cambioDelete', id);
 
       return 'Cambio eliminado';
