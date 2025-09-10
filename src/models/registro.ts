@@ -104,7 +104,7 @@ class RegistroModel {
       });
 
       await RegistroSchemas.updateOne({ id }, { terminada: true, sobrantes });
-      io.emit('registroTerminada', { id , sobrantes });
+      io.emit('registroTerminada', { id, sobrantes });
 
       // Dejar los productos de la ruta en 0
 
@@ -149,6 +149,53 @@ class RegistroModel {
       return 'Registro terminado correctamente';
     } catch {
       return 'Error al terminar el registro';
+    }
+  }
+  async actualizarNombreProducto(anterior: string, actual: string) {
+    try {
+      const registros: RegistroType[] = await RegistroSchemas.find();
+
+      if (registros.length === 0) return;
+
+      for (const reg of registros) {
+        const productosNuevos: Record<string, ProductosDiasType> = {};
+        const sobrantesNuevos: Record<string, number> = {};
+        const cambiosNuevos: Record<string, number> = {};
+
+        for (const dia of Object.keys(reg.productos)) {
+          const productosDias: ProductosDiasType = reg.productos[dia];
+
+          for (const [nombre, cantidad] of Object.entries(reg.productos[dia])) {
+            if (nombre === anterior) {
+              productosDias[actual] = cantidad;
+            } else {
+              productosDias[nombre] = cantidad;
+            }
+          }
+
+          productosNuevos[dia] = productosDias;
+        }
+
+        for(const [nombre, cantidad] of Object.entries(reg.sobrantes)) {
+          if (nombre === anterior) {
+            sobrantesNuevos[actual] = cantidad;
+          } else {
+            sobrantesNuevos[nombre] = cantidad;
+          }
+        }
+
+        for(const [nombre, cantidad] of Object.entries(reg.cambios)) {
+          if (nombre === anterior) {
+            cambiosNuevos[actual] = cantidad;
+          } else {
+            cambiosNuevos[nombre] = cantidad;
+          }
+        }
+
+        await RegistroSchemas.updateOne({ id: reg.id }, { productos: productosNuevos, sobrantes: sobrantesNuevos, cambios: cambiosNuevos });
+      }
+    } catch {
+      return 'Error al actualizar el nombre del producto';
     }
   }
 }

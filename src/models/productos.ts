@@ -1,6 +1,7 @@
 import { ProductosSchema } from '@/schemas/productos';
 import { ProductoType } from '@/types/productos';
 import UsuariosModels from '@/models/usuarios';
+import RegistroModels from '@/models/registro';
 
 class ProductosModels {
   async obtenerProductos() {
@@ -70,6 +71,10 @@ class ProductosModels {
 
       await ProductosSchema.updateOne({ id }, { nombre, cantidad, precioCompra, precioVenta });
       await UsuariosModels.actualizarPrecioProducto(id, precioVenta, nombre);
+
+      if(nombre !== product.nombre) {
+        await RegistroModels.actualizarNombreProducto(product.nombre, nombre);
+      }
 
       return 'Producto actualizado';
     } catch {
