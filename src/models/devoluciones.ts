@@ -1,6 +1,8 @@
 import io from '@/app';
 import { DevolucionesSchemas } from '@/schemas/devoluciones';
+import { RegistroSchemas } from '@/schemas/registro';
 import { DevolucionesType, ProductosDevolucion } from '@/types/devoluciones';
+import { RegistroType } from '@/types/registro';
 
 class DevolucionesModels {
   async obtenerDevoluciones(fecha: string) {
@@ -29,6 +31,18 @@ class DevolucionesModels {
     try {
       await DevolucionesSchemas.create(devolucion);
 
+      const registro: RegistroType | null = await RegistroSchemas.findOne({
+        ruta: devolucion.facturador,
+        terminada: false,
+      });
+
+      if (registro) {
+        await RegistroSchemas.updateOne(
+          { id: registro.id },
+          { devoluciones: registro.devoluciones + devolucion.total },
+        );
+      }
+
       io.emit('devolucionAdd', devolucion);
 
       return 'Devolución creada';
@@ -49,6 +63,22 @@ class DevolucionesModels {
       }, 0);
 
       await DevolucionesSchemas.updateOne({ id }, { productos, total });
+
+      const registro: RegistroType | null = await RegistroSchemas.findOne({
+        ruta: devolucion.facturador,
+        terminada: false,
+      });
+
+      if(registro){
+        const descuentoAnterior = devolucion.total;
+
+        await RegistroSchemas.updateOne(
+          { id: registro.id },
+          {
+            devoluciones: registro.devoluciones + (total - descuentoAnterior),
+          },
+        );
+      }
 
       io.emit('devolucionUpdate', { id, productos, total });
 
