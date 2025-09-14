@@ -54,6 +54,8 @@ class RegistroModel {
         sobrantes,
         cambios,
         terminada: false,
+        devoluciones: 0,
+        descuentos: 0,
       });
 
       return 'Registro creado correctamente';
