@@ -97,6 +97,18 @@ class DevolucionesModels {
 
       await DevolucionesSchemas.deleteOne({ id });
 
+      const registro: RegistroType | null = await RegistroSchemas.findOne({
+        ruta: devolucion.facturador,
+        terminada: false,
+      });
+
+      if (registro) {
+        await RegistroSchemas.updateOne(
+          { id: registro.id },
+          { devoluciones: registro.devoluciones - devolucion.total },
+        );
+      }
+
       io.emit('devolucionDelete', id);
 
       return 'Devolución eliminada';
