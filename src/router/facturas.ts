@@ -83,4 +83,9 @@ router.delete('/administrador/facturas/:id', (req, res) => {
   void FacturasControllers.eliminarFacturaAdministrador(req, res);
 });
 
+router.get('/cliente/nombres/:cliente/global', (req, res) => {
+  console.log('Nombres');
+  void FacturasControllers.obtenerFacturasClienteGlobal(req, res);
+});
+
 export default router;

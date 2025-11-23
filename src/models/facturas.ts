@@ -14,7 +14,7 @@ import { ProductosSchema } from '@/schemas/productos';
 class FacturasModels {
   async obtenerFacturas(fecha: string) {
     try {
-      const localDate = new Date(fecha); 
+      const localDate = new Date(fecha);
 
       const inicioDelDia = new Date(localDate);
       inicioDelDia.setUTCHours(6, 0, 0, 0);
@@ -431,6 +431,19 @@ class FacturasModels {
       })
         .sort({ fecha: -1 })
         .limit(20);
+
+      return facturas;
+    } catch {
+      return [];
+    }
+  }
+  async obtenerFacturasClienteGlobal(cliente: string) {
+    try {
+      const facturas: FacturaType[] = await FacturasSchemas.find({
+        nombre: cliente,
+      })
+        .sort({ fecha: -1 })
+        .limit(100);
 
       return facturas;
     } catch {
