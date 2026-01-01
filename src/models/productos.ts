@@ -90,6 +90,7 @@ class ProductosModels {
       }
 
       await ProductosSchema.deleteOne({ id });
+      await UsuariosModels.eliminarProducto(id);
 
       return 'Producto eliminado';
     } catch {

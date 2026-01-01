@@ -595,6 +595,24 @@ class UsuariosModels {
       console.error('Error', error);
     }
   }
+  async eliminarProducto(id: string) {
+    try {
+      const rutas = await RutasProductosSchemas.find();
+
+      await Promise.all(
+        rutas.map(async (ruta) => {
+          const productos = ruta.productos.filter((prd) => prd.id !== id);
+
+          await RutasProductosSchemas.updateOne(
+            { ruta: ruta.ruta },
+            { productos },
+          );
+        }),
+      );
+    } catch (error) {
+      console.error('Error', error);
+    }
+  }
 }
 
 export default new UsuariosModels();
