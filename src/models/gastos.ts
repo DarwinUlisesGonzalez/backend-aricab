@@ -1,3 +1,4 @@
+import io from '@/app';
 import { GastosSchema } from '@/schemas/gastos';
 import { GastoType } from '@/types/gastos';
 
@@ -6,6 +7,8 @@ class GastosModels {
     try {
       await GastosSchema.create(gasto);
 
+      io.emit('gastoAdd', gasto);
+
       return 'Gasto creado';
     } catch {
       return 'Error al crear gasto';
@@ -13,8 +16,7 @@ class GastosModels {
   }
   async ObtenerGastosFacturador(id: string, fecha: string) {
     try {
-      console.log(id, fecha);
-      
+
       const localDate = new Date(fecha);
       const inicioDelDia = new Date(localDate);
       inicioDelDia.setUTCHours(6, 0, 0, 0);
@@ -23,7 +25,7 @@ class GastosModels {
       finDelDia.setUTCHours(29, 59, 59, 999);
 
       const gastos = await GastosSchema.find({
-        facturador: id,
+        ruta: id,
         fecha: {
           $gte: inicioDelDia,
           $lte: finDelDia,
@@ -33,6 +35,23 @@ class GastosModels {
       return gastos;
     } catch {
       return [];
+    }
+  }
+  async eliminarGasto(id: string) {
+    try {
+      const gasto = await GastosSchema.findOne({ id });
+
+      if (!gasto) {
+        return 'Gasto no encontrado';
+      }
+
+      await GastosSchema.deleteOne({ id });
+
+      io.emit('gastoDelete', id);
+
+      return 'Gasto eliminado';
+    } catch {
+      return 'Error al eliminar gasto';
     }
   }
 }

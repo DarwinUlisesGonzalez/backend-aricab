@@ -11,7 +11,7 @@ class GastosControllers {
         fecha: string;
         monto: number;
       };
-      
+
       if (!id || !ruta || !tipo || !fecha || !monto) {
         return res.status(400).json({ message: 'Datos requeridos' });
       }
@@ -24,7 +24,7 @@ class GastosControllers {
         monto,
       });
 
-      if(result !== 'Gasto creado') {
+      if (result !== 'Gasto creado') {
         return res.status(500).json({ message: result });
       }
 
@@ -50,6 +50,29 @@ class GastosControllers {
       return res.status(200).json(gastos);
     } catch {
       res.status(500).json({ message: 'Error al obtener gastos' });
+    }
+  }
+  async eliminarGasto(req: Request, res: Response) {
+    try {
+      const { id } = req.params as { id: string };
+
+      if (!id) {
+        return res.status(400).json({ message: 'Faltan datos' });
+      }
+
+      const response = await GastosModels.eliminarGasto(id);
+
+      if (response === 'Error al eliminar gasto') {
+        return res.status(400).json({ message: response });
+      }
+
+      if (response === 'Gasto no encontrado') {
+        return res.status(404).json({ message: response });
+      }
+
+      res.status(200).json({ message: response });
+    } catch {
+      res.status(500).json({ message: 'Error al eliminar gasto' });
     }
   }
 }

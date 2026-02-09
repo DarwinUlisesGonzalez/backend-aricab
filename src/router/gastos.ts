@@ -11,4 +11,8 @@ router.get('/facturador/:id/fecha/:fecha', (req, res) => {
   void GastosControllers.ObtenerGastosFacturador(req, res);
 });
 
+router.delete('/:id', (req, res) => {
+  void GastosControllers.eliminarGasto(req, res);
+});
+
 export default router;
