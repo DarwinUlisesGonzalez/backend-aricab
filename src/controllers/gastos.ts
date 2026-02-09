@@ -2,6 +2,21 @@ import { Request, Response } from 'express';
 import GastosModels from '@/models/gastos';
 
 class GastosControllers {
+  async obtenerGastos(req: Request, res: Response) {
+    try {
+      const { fecha } = req.params;
+
+      const gastos = await GastosModels.obtenerGastos(fecha);
+
+      if (gastos.length === 0) {
+        return res.status(404).json({ message: 'No hay gastos' });
+      }
+
+      return res.status(200).json(gastos);
+    } catch {
+      res.status(500).json({ message: 'Error al obtener gastos' });
+    }
+  }
   async crearGasto(req: Request, res: Response) {
     try {
       const { id, ruta, tipo, fecha, monto } = req.body as {
@@ -37,7 +52,7 @@ class GastosControllers {
     try {
       const { id, fecha } = req.params as { id: string; fecha: string };
 
-      if (!id || !fecha) {
+      if (!id) {
         return res.status(400).json({ message: 'Datos requeridos' });
       }
 

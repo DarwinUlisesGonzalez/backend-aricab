@@ -4,7 +4,7 @@ const Gastos = new mongoose.Schema({
   id: { type: String, required: true },
   ruta: { type: String, required: true },
   tipo: { type: String, required: true },
-  fecha: { type: String, required: true },
+  fecha: { type: Date, required: true },
   monto: { type: Number, required: true },
 });
 

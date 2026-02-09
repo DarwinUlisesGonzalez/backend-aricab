@@ -3,6 +3,10 @@ import GastosControllers from '@/controllers/gastos';
 
 const router = Router();
 
+router.get('/fecha/:fecha', (req, res) => {
+  void GastosControllers.obtenerGastos(req, res);
+});
+
 router.post('/', (req, res) => {
   void GastosControllers.crearGasto(req, res);
 });

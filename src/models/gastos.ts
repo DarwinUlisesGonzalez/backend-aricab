@@ -5,6 +5,28 @@ import { GastoType } from '@/types/gastos';
 import { RegistroType } from '@/types/registro';
 
 class GastosModels {
+  async obtenerGastos(fecha: string) {
+    try {
+      const localDate = new Date(fecha);
+
+      const inicioDelDia = new Date(localDate);
+      inicioDelDia.setUTCHours(6, 0, 0, 0);
+
+      const finDelDia = new Date(localDate);
+      finDelDia.setUTCHours(29, 59, 59, 999);
+
+      const gastos = await GastosSchema.find({
+        fecha: {
+          $gte: inicioDelDia,
+          $lte: finDelDia,
+        },
+      });
+
+      return gastos;
+    } catch {
+      return [];
+    }
+  }
   async crearGasto(gasto: GastoType) {
     try {
       await GastosSchema.create(gasto);
@@ -31,6 +53,7 @@ class GastosModels {
   async ObtenerGastosFacturador(id: string, fecha: string) {
     try {
       const localDate = new Date(fecha);
+
       const inicioDelDia = new Date(localDate);
       inicioDelDia.setUTCHours(6, 0, 0, 0);
 
