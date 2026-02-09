@@ -11,6 +11,7 @@ const RegistroSchema = new mongoose.Schema({
   terminada: { type: Boolean, default: false },
   descuentos: { type: Number, default: 0 },
   devoluciones: { type: Number, default: 0 },
+  gastos: { type: Number, default: 0 },
 });
 
 export const RegistroSchemas = mongoose.model('registro', RegistroSchema);

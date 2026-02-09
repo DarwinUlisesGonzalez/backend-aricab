@@ -10,5 +10,6 @@ export interface RegistroType {
   cambios: Record<string, number>;
   descuentos: number;
   devoluciones: number;
+  gastos: number;
   terminada: boolean;
 }

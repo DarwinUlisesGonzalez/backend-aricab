@@ -1,13 +1,27 @@
 import io from '@/app';
 import { GastosSchema } from '@/schemas/gastos';
+import { RegistroSchemas } from '@/schemas/registro';
 import { GastoType } from '@/types/gastos';
+import { RegistroType } from '@/types/registro';
 
 class GastosModels {
   async crearGasto(gasto: GastoType) {
     try {
       await GastosSchema.create(gasto);
 
-      io.emit('gastoAdd', gasto);
+      const registro: RegistroType | null = await RegistroSchemas.findOne({
+        ruta: gasto.ruta,
+        terminada: false,
+      });
+
+      if (registro) {
+        await RegistroSchemas.updateOne(
+          { id: registro.id },
+          { gastos: registro.gastos + gasto.monto },
+        );
+      }
+
+      io.emit('gastosAdd', gasto);
 
       return 'Gasto creado';
     } catch {
@@ -16,7 +30,6 @@ class GastosModels {
   }
   async ObtenerGastosFacturador(id: string, fecha: string) {
     try {
-
       const localDate = new Date(fecha);
       const inicioDelDia = new Date(localDate);
       inicioDelDia.setUTCHours(6, 0, 0, 0);
@@ -47,7 +60,21 @@ class GastosModels {
 
       await GastosSchema.deleteOne({ id });
 
-      io.emit('gastoDelete', id);
+      const registro: RegistroType | null = await RegistroSchemas.findOne({
+        ruta: gasto.ruta,
+        terminada: false,
+      });
+
+      if (registro) {
+        await RegistroSchemas.updateOne(
+          { id: registro.id },
+          {
+            gastos: registro.gastos - gasto.monto,
+          },
+        );
+      }
+
+      io.emit('gastosDelete', id);
 
       return 'Gasto eliminado';
     } catch {
