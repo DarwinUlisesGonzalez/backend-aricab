@@ -4,15 +4,15 @@ import path from 'node:path';
 const router = Router();
 
 const latestVersion = {
-  version: '5.1.0',
+  version: '5.2.0',
   notes: 'Nueva actualización',
-  pub_date: '2025-30-11T00:00:00Z',
+  pub_date: '2026-08-02T00:00:00Z',
   platforms: {
     windows: {
-      url: 'https://api.aricab.shop/aplicacion/actualizar/aricab_5.1.0_x64-setup.exe',
+      url: 'https://api.aricab.shop/aplicacion/actualizar/aricab_5.2.0_x64-setup.exe',
     },
     linux: {
-      url: 'https://api.aricab.shop/aplicacion/actualizar/aricab_5.1.0_amd64.deb',
+      url: 'https://api.aricab.shop/aplicacion/actualizar/aricab_5.2.0_amd64.deb',
     }
   }
 };
