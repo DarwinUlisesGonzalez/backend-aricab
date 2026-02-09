@@ -599,9 +599,13 @@ class UsuariosModels {
     try {
       const rutas = await RutasProductosSchemas.find();
 
+      const producto = await ProductosSchema.findOne({ id });
+
+      if (!producto) return;
+
       await Promise.all(
         rutas.map(async (ruta) => {
-          const productos = ruta.productos.filter((prd) => prd.id !== id);
+          const productos = ruta.productos.filter((prd) => prd.nombre !== producto.nombre);
 
           await RutasProductosSchemas.updateOne(
             { ruta: ruta.ruta },
