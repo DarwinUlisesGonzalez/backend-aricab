@@ -89,8 +89,8 @@ class ProductosModels {
         return 'Producto no existe';
       }
 
-      await ProductosSchema.deleteOne({ id });
       await UsuariosModels.eliminarProducto(id);
+      await ProductosSchema.deleteOne({ id });
 
       return 'Producto eliminado';
     } catch {
