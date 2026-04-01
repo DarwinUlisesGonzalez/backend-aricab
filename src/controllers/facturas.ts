@@ -39,7 +39,7 @@ class FacturasControllers {
   }
   async crearFactura(req: Request, res: Response) {
     try {
-      const { id, nombre, productos, tipo, facturador, fecha, pagado } =
+      const { id, nombre, productos, tipo, facturador, fecha, pagado, descuento } =
         req.body as {
           id: string;
           nombre: string;
@@ -48,6 +48,7 @@ class FacturasControllers {
           facturador: string;
           fecha: Date;
           pagado: number;
+          descuento: number;
         };
 
       if (
@@ -69,7 +70,7 @@ class FacturasControllers {
         total: 0,
         'id-facturador': facturador,
         pagado,
-        descuento: 0,
+        descuento
       });
 
       if (response === 'Error al crear la factura') {
@@ -84,10 +85,11 @@ class FacturasControllers {
   async actualizarFactura(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { productos, tipo, pagado } = req.body as {
+      const { productos, tipo, pagado, descuento } = req.body as {
         productos: ProductoFacturaType[];
         tipo: string;
         pagado: number;
+        descuento: number;
       };
 
       if (!Array.isArray(productos)) {
@@ -99,6 +101,7 @@ class FacturasControllers {
         productos,
         tipo,
         pagado,
+        descuento,
       );
 
       if (response === 'Factura no encontrada') {

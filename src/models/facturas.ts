@@ -52,22 +52,10 @@ class FacturasModels {
         0,
       );
 
-      const productos = await ProductosModels.obtenerProductos();
-
-      const descuento = Math.ceil(
-        factura.productos.reduce((acc, prd) => {
-          const prod = productos.find((p) => p.id === prd.id);
-
-          if (!prod) return acc;
-
-          return acc + (prod.precioVenta - prd.precio) * prd.cantidad;
-        }, 0),
-      );
-
       await FacturasSchemas.create({
         ...factura,
         total: Math.ceil(suma),
-        descuento,
+        descuento: factura.descuento,
       });
       await UsuarioModels.actualizarCantidad(
         factura['id-facturador'],
@@ -83,7 +71,7 @@ class FacturasModels {
         total: Math.ceil(suma),
         pagado: factura.pagado,
         'id-facturador': factura['id-facturador'],
-        descuento,
+        descuento: factura.descuento,
       });
 
       const registro: RegistroType | null = await RegistroSchemas.findOne({
@@ -94,7 +82,7 @@ class FacturasModels {
       if (registro) {
         await RegistroSchemas.updateOne(
           { id: registro.id },
-          { descuentos: registro.descuentos + descuento },
+          { descuentos: registro.descuentos + factura.descuento },
         );
       }
 
@@ -108,6 +96,7 @@ class FacturasModels {
     productos: ProductoFacturaType[],
     tipo: string,
     pagado: number,
+    descuento: number,
   ) {
     try {
       const factur = await FacturasSchemas.findOne({ id });
@@ -123,27 +112,8 @@ class FacturasModels {
         0,
       );
 
-      const prods = await ProductosModels.obtenerProductos();
-
-      const descuentoAnterior = Math.ceil(
-        factur.productos.reduce((acc, prd) => {
-          const prod = prods.find((p) => p.id === prd.id);
-
-          if (!prod) return acc;
-
-          return acc + (prod.precioVenta - prd.precio) * prd.cantidad;
-        }, 0),
-      );
-
-      const descuentoNuevo = Math.ceil(
-        productos.reduce((acc, prd) => {
-          const prod = prods.find((p) => p.id === prd.id);
-
-          if (!prod) return acc;
-
-          return acc + (prod.precioVenta - prd.precio) * prd.cantidad;
-        }, 0),
-      );
+      const descuentoAnterior = factur.descuento;
+      const descuentoNuevo = descuento;
 
       await FacturasSchemas.updateOne(
         { id },
