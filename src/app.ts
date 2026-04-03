@@ -18,6 +18,7 @@ import registros from './router/registro';
 import creditos from './router/creditos';
 import recuperacion from './router/recuperacion';
 import gastos from './router/gastos';
+import sincronizar from './router/sincronizar';
 
 const app = express();
 const port: number | string = process.env.PORT ?? 3000;
@@ -54,6 +55,7 @@ app.use('/registros', registros);
 app.use('/creditos', creditos);
 app.use('/recuperacion', recuperacion);
 app.use('/gastos', gastos);
+app.use('/sincronizar', sincronizar);
 
 app.use((req, res) => {
   res.status(404).send({ message: 'Ruta no encontrada' });

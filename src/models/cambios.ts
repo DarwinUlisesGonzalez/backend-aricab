@@ -9,11 +9,11 @@ class CambiosModels {
   async obtenerCambios(fecha: string) {
     try {
       const localDate = new Date(fecha);
-      
+
       const inicioDelDia = new Date(localDate);
       inicioDelDia.setUTCHours(6, 0, 0, 0);
-      
-      const finDelDia = new Date(localDate);  
+
+      const finDelDia = new Date(localDate);
       finDelDia.setUTCHours(29, 59, 59, 999);
 
       const cambios: CambiosType[] = await CambiosSchemas.find({
@@ -37,7 +37,9 @@ class CambiosModels {
       if (!registro) return;
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const newcambios: Record<string, number> = JSON.parse(JSON.stringify(registro.cambios));
+      const newcambios: Record<string, number> = JSON.parse(
+        JSON.stringify(registro.cambios),
+      );
 
       cambios.productos.forEach((producto) => {
         newcambios[producto.nombre] = newcambios[producto.nombre]
@@ -107,6 +109,29 @@ class CambiosModels {
       await UsuarioModels.actualizarCantidadCambioDelete(
         cambio.facturador,
         cambio.productos,
+      );
+
+      const cambiosAcumulados: Record<string, number> = {};
+
+      for (const prod of cambio.productos) {
+        cambiosAcumulados[prod.nombre] =
+          (cambiosAcumulados[prod.nombre] || 0) + prod.cantidad;
+      }
+
+      const incCambios: Record<string, number> = {};
+
+      for (const key in cambiosAcumulados) {
+        incCambios[`cambios.${key}`] = -cambiosAcumulados[key];
+      }
+
+      await RegistroSchemas.updateOne(
+        {
+          ruta: cambio.facturador,
+          terminada: false,
+        },
+        {
+          $inc: incCambios,
+        },
       );
 
       io.emit('cambioDelete', id);
