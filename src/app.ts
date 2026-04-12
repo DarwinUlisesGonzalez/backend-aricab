@@ -19,6 +19,7 @@ import creditos from './router/creditos';
 import recuperacion from './router/recuperacion';
 import gastos from './router/gastos';
 import sincronizar from './router/sincronizar';
+import ai from './router/chatbot';
 
 const app = express();
 const port: number | string = process.env.PORT ?? 3000;
@@ -33,6 +34,7 @@ const io = new Server(server, {
   },
 });
 
+app.set('trust proxy', 1);
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
@@ -56,6 +58,7 @@ app.use('/creditos', creditos);
 app.use('/recuperacion', recuperacion);
 app.use('/gastos', gastos);
 app.use('/sincronizar', sincronizar);
+app.use('/ai', ai);
 
 app.use((req, res) => {
   res.status(404).send({ message: 'Ruta no encontrada' });
