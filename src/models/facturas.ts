@@ -82,7 +82,7 @@ class FacturasModels {
       if (registro) {
         await RegistroSchemas.updateOne(
           { id: registro.id },
-          { descuentos: registro.descuentos + factura.descuento },
+          { $inc: { descuentos: factura.descuento } },
         );
       }
 
@@ -149,10 +149,7 @@ class FacturasModels {
       if (registro) {
         await RegistroSchemas.updateOne(
           { id: registro.id },
-          {
-            descuentos:
-              registro.descuentos + (descuentoNuevo - descuentoAnterior),
-          },
+          { $inc: { descuentos: descuentoNuevo - descuentoAnterior } },
         );
       }
 

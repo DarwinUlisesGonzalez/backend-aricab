@@ -1,8 +1,8 @@
 import io from '@/app';
+import mongoose from 'mongoose';
 import { GastosSchema } from '@/schemas/gastos';
 import { RegistroSchemas } from '@/schemas/registro';
 import { GastoType } from '@/types/gastos';
-import { RegistroType } from '@/types/registro';
 
 class GastosModels {
   async obtenerGastos(fecha: string) {
@@ -28,26 +28,23 @@ class GastosModels {
     }
   }
   async crearGasto(gasto: GastoType) {
+    const session = await mongoose.startSession();
     try {
-      await GastosSchema.create(gasto);
-
-      const registro: RegistroType | null = await RegistroSchemas.findOne({
-        ruta: gasto.ruta,
-        terminada: false,
-      });
-
-      if (registro) {
+      await session.withTransaction(async () => {
+        await GastosSchema.create([gasto], { session }); // nota: array con session
         await RegistroSchemas.updateOne(
-          { id: registro.id },
-          { gastos: registro.gastos + gasto.monto },
+          { ruta: gasto.ruta, terminada: false },
+          { $inc: { gastos: gasto.monto } },
+          { session },
         );
-      }
-
+      });
       io.emit('gastosAdd', gasto);
-
       return 'Gasto creado';
-    } catch {
+    } catch (error) {
+      console.error('Error al crear gasto:', error);
       return 'Error al crear gasto';
+    } finally {
+      await session.endSession();
     }
   }
   async ObtenerGastosFacturador(id: string, fecha: string) {
@@ -76,31 +73,19 @@ class GastosModels {
   async eliminarGasto(id: string) {
     try {
       const gasto = await GastosSchema.findOne({ id });
-
-      if (!gasto) {
-        return 'Gasto no encontrado';
-      }
+      if (!gasto) return 'Gasto no encontrado';
 
       await GastosSchema.deleteOne({ id });
 
-      const registro: RegistroType | null = await RegistroSchemas.findOne({
-        ruta: gasto.ruta,
-        terminada: false,
-      });
-
-      if (registro) {
-        await RegistroSchemas.updateOne(
-          { id: registro.id },
-          {
-            gastos: registro.gastos - gasto.monto,
-          },
-        );
-      }
+      await RegistroSchemas.updateOne(
+        { ruta: gasto.ruta, terminada: false },
+        { $inc: { gastos: -gasto.monto } },
+      );
 
       io.emit('gastosDelete', id);
-
       return 'Gasto eliminado';
-    } catch {
+    } catch (error) {
+      console.error('Error al eliminar gasto:', error);
       return 'Error al eliminar gasto';
     }
   }
