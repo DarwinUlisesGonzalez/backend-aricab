@@ -11,3 +11,20 @@ export interface ClienteType {
   };
   precision?: number;
 }
+
+export interface MejorCompradorRow {
+  nombre: string;
+  total: number;
+  facturas: number;
+  unidades: number;
+  ticketPromedio: number;
+}
+
+export interface MejoresCompradoresResponse {
+  mes: string;
+  enCurso: boolean;
+  desde: string;
+  hasta: string;
+  excluidos: string[];
+  clientes: MejorCompradorRow[];
+}

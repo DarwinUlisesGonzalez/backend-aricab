@@ -31,4 +31,8 @@ router.delete('/:id/ubicacion', (req, res) => {
   void ClientesControllers.eliminarUbicacion(req, res);
 });
 
+router.get('/facturas/mes/:mes', (req, res) => {
+  void ClientesControllers.getMejoresCompradores(req, res);
+});
+
 export default router;

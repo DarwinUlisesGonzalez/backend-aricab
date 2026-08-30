@@ -1,6 +1,7 @@
 import { ClientesSchema } from '@/schemas/clientes';
-import { ClienteType } from '@/types/clientes';
+import { ClienteType, MejorCompradorRow } from '@/types/clientes';
 import FacturasModels from '@/models/facturas';
+import { FacturasSchemas } from '@/schemas/facturas';
 
 class ClientesModels {
   async obtenerClientes() {
@@ -106,8 +107,38 @@ class ClientesModels {
     return ClientesSchema.findOneAndUpdate(
       { id },
       { ubicacion: null, precision: null },
-      { new: true }
+      { new: true },
     );
+  }
+  async mejoresCompradores(desde: Date, hasta: Date, limite = 10, excluidos: string[]) {
+    return await FacturasSchemas.aggregate<MejorCompradorRow>([
+      {
+        $match: {
+          fecha: { $gte: desde, $lt: hasta },
+          nombre: { $nin: ['COMODIN', ...excluidos] },
+        },
+      },
+      {
+        $group: {
+          _id: '$nombre',
+          total: { $sum: '$total' },
+          facturas: { $sum: 1 },
+          unidades: { $sum: { $sum: '$productos.cantidad' } },
+        },
+      },
+      { $sort: { total: -1 } },
+      { $limit: limite },
+      {
+        $project: {
+          _id: 0,
+          nombre: '$_id',
+          total: { $round: ['$total', 2] },
+          facturas: 1,
+          unidades: 1,
+          ticketPromedio: { $round: [{ $divide: ['$total', '$facturas'] }, 2] },
+        },
+      },
+    ]);
   }
 }
 

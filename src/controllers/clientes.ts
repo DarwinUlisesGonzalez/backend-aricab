@@ -2,6 +2,9 @@ import { Request, Response } from 'express';
 import ClientesModels from '../models/clientes';
 import io from '@/app';
 import crypto from 'node:crypto';
+import { MejoresCompradoresResponse } from '@/types/clientes';
+
+const OFFSET_NI = 6;
 
 class ClientesControllers {
   async obtenerClientes(req: Request, res: Response) {
@@ -159,7 +162,9 @@ class ClientesControllers {
       if (!cliente)
         return res.status(404).json({ message: 'Cliente no encontrado' });
 
-      return res.status(200).json({ message: 'Ubicación actualizada', cliente });
+      return res
+        .status(200)
+        .json({ message: 'Ubicación actualizada', cliente });
     } catch {
       return res.status(500).json({ message: 'Error al guardar la ubicación' });
     }
@@ -176,6 +181,58 @@ class ClientesControllers {
       return res
         .status(500)
         .json({ message: 'Error al eliminar la ubicación' });
+    }
+  }
+  async getMejoresCompradores(
+    req: Request<{ mes: string }>,
+    res: Response<MejoresCompradoresResponse | { message: string }>,
+  ) {
+    try {
+      const { mes } = req.params;
+
+      if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(mes)) {
+        return res
+          .status(400)
+          .json({ message: 'mes debe tener formato YYYY-MM' });
+      }
+
+      const [anio, m] = mes.split('-').map(Number);
+
+      const desde = new Date(Date.UTC(anio, m - 1, 1, OFFSET_NI, 0, 0));
+      const hasta = new Date(Date.UTC(anio, m, 1, OFFSET_NI, 0, 0));
+
+      const ahora = new Date();
+      if (desde > ahora) {
+        return res
+          .status(400)
+          .json({ message: 'El mes solicitado aún no ha comenzado' });
+      }
+
+      const raw = req.query.excluir;
+      const excluidos = (typeof raw === 'string' ? raw.split(',') : [])
+        .map((n) => n.trim())
+        .filter(Boolean)
+        .slice(0, 50); // tope: evita una URL de 8 KB
+
+      const clientes = await ClientesModels.mejoresCompradores(
+        desde,
+        hasta,
+        10,
+        excluidos,
+      );
+
+      return res.status(200).json({
+        mes,
+        enCurso: ahora < hasta,
+        desde: desde.toISOString(),
+        hasta: hasta.toISOString(),
+        excluidos,
+        clientes,
+      });
+    } catch {
+      return res
+        .status(500)
+        .json({ message: 'Error al obtener los mejores compradores' });
     }
   }
 }

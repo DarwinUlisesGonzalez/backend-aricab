@@ -19,4 +19,6 @@ const FacturaSchema = new mongoose.Schema({
   descuento: { type: Number, required: true },
 });
 
+FacturaSchema.index({ fecha: -1 });
+
 export const FacturasSchemas = mongoose.model('facturas', FacturaSchema);
