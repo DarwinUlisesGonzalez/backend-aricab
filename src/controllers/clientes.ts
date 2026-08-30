@@ -37,7 +37,11 @@ class ClientesControllers {
     }
   }
   async crearCliente(req: Request, res: Response) {
-    const { nombres, direccion, telefono } = req.body as { nombres: string; direccion: string; telefono: string };
+    const { nombres, direccion, telefono } = req.body as {
+      nombres: string;
+      direccion: string;
+      telefono: string;
+    };
 
     if (!nombres || !direccion || !telefono) {
       return res.status(400).json({ message: 'Datos requeridos' });
@@ -56,7 +60,7 @@ class ClientesControllers {
         return res.status(400).json({ message: resultado });
       }
 
-      if(resultado === 'Error al crear cliente'){
+      if (resultado === 'Error al crear cliente') {
         return res.status(500).json({ message: resultado });
       }
 
@@ -69,7 +73,11 @@ class ClientesControllers {
   }
   async actualizarCliente(req: Request, res: Response) {
     const { id } = req.params;
-    const { nombres, direccion, telefono } = req.body as { nombres: string; direccion: string; telefono: string };
+    const { nombres, direccion, telefono } = req.body as {
+      nombres: string;
+      direccion: string;
+      telefono: string;
+    };
 
     if (!id || !nombres || !direccion || !telefono) {
       return res.status(400).json({ message: 'Datos requeridos' });
@@ -117,6 +125,57 @@ class ClientesControllers {
       return res.status(200).json({ message: resultado });
     } catch {
       return res.status(500).json('Error al eliminar cliente');
+    }
+  }
+  async actualizarUbicacion(req: Request, res: Response) {
+    try {
+      const { lng, lat, precision } = req.body as {
+        lng: number;
+        lat: number;
+        precision?: number;
+      };
+
+      if (typeof lng !== 'number' || typeof lat !== 'number') {
+        return res
+          .status(400)
+          .json({ message: 'lng y lat son requeridos y deben ser numéricos' });
+      }
+
+      if (lng < -180 || lng > 180 || lat < -90 || lat > 90) {
+        return res.status(400).json({ message: 'Coordenadas fuera de rango' });
+      }
+
+      if (precision != undefined && typeof precision !== 'number') {
+        return res.status(400).json({ message: 'precision debe ser numérica' });
+      }
+
+      const cliente = await ClientesModels.actualizarUbicacion(
+        req.params.id,
+        lng,
+        lat,
+        precision ?? undefined,
+      );
+
+      if (!cliente)
+        return res.status(404).json({ message: 'Cliente no encontrado' });
+
+      return res.status(200).json({ message: 'Ubicación actualizada', cliente });
+    } catch {
+      return res.status(500).json({ message: 'Error al guardar la ubicación' });
+    }
+  }
+  async eliminarUbicacion(req: Request, res: Response) {
+    try {
+      const cliente = await ClientesModels.eliminarUbicacion(req.params.id);
+
+      if (!cliente)
+        return res.status(404).json({ message: 'Cliente no encontrado' });
+
+      return res.status(200).json({ message: 'Ubicación eliminada', cliente });
+    } catch {
+      return res
+        .status(500)
+        .json({ message: 'Error al eliminar la ubicación' });
     }
   }
 }

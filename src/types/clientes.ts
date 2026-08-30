@@ -5,4 +5,9 @@ export interface ClienteType {
   nombres: string;
   direccion: string;
   telefono: string;
+  ubicacion?: {
+    type: 'Point';
+    coordinates: [number, number];
+  };
+  precision?: number;
 }

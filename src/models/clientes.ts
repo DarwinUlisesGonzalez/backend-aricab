@@ -87,6 +87,28 @@ class ClientesModels {
       return 'Error al eliminar cliente';
     }
   }
+  async actualizarUbicacion(
+    id: string,
+    lng: number,
+    lat: number,
+    precision?: number,
+  ) {
+    return ClientesSchema.findOneAndUpdate(
+      { id },
+      {
+        ubicacion: { type: 'Point', coordinates: [lng, lat] },
+        precision,
+      },
+      { new: true },
+    );
+  }
+  async eliminarUbicacion(id: string) {
+    return ClientesSchema.findOneAndUpdate(
+      { id },
+      { ubicacion: null, precision: null },
+      { new: true }
+    );
+  }
 }
 
 export default new ClientesModels();

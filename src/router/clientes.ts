@@ -23,4 +23,12 @@ router.delete('/:id', (req, res) => {
   void ClientesControllers.eliminarCliente(req, res);
 });
 
+router.put('/:id/ubicacion', (req, res) => {
+  void ClientesControllers.actualizarUbicacion(req, res);
+});
+
+router.delete('/:id/ubicacion', (req, res) => {
+  void ClientesControllers.eliminarUbicacion(req, res);
+});
+
 export default router;
