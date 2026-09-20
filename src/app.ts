@@ -21,6 +21,7 @@ import gastos from './router/gastos';
 import sincronizar from './router/sincronizar';
 import programacion from './router/programacion';
 import asignacion from './router/asignacion';
+import liquidacion from './router/liquidacion';
 import ai from './router/chatbot';
 
 const app = express();
@@ -62,6 +63,7 @@ app.use('/gastos', gastos);
 app.use('/sincronizar', sincronizar);
 app.use('/programaciones', programacion);
 app.use('/asignaciones', asignacion);
+app.use('/liquidaciones', liquidacion);
 app.use('/ai', ai);
 
 app.use((req, res) => {
